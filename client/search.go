@@ -76,9 +76,10 @@ func (c *SearchClient) SearchTilLimit(uri string, limit int) []model.Item {
 
 	for ; limit > 0; limit -= length {
 		param.page++
+		searchParam := *param
 		wg.Add(1)
 		go func() {
-			result, err = c.searchItems(*param)
+			result, err = c.searchItems(searchParam)
 			for _, item := range result.Items.Item {
 				itemsChan <- item
 			}
