@@ -1,5 +1,9 @@
 package model
 
+import "strings"
+
+const picUrlPrefix = "http"
+
 type Item struct {
 	Title          string `json:"title"`
 	PicURL         string `json:"pic_url"`
@@ -10,6 +14,14 @@ type Item struct {
 	SellerNick     string `json:"seller_nick"`
 	SellerID       int    `json:"seller_id"`
 	DetailURL      string `json:"detail_url"`
+}
+
+func (i Item)GetPicURL() string {
+	if strings.HasPrefix(i.PicURL, picUrlPrefix) {
+		return i.PicURL
+	}
+
+	return picUrlPrefix + i.PicURL
 }
 
 type Items struct {
