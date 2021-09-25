@@ -21,7 +21,7 @@ func (i Item)GetPicURL() string {
 		return i.PicURL
 	}
 
-	return picUrlPrefix + i.PicURL
+	return picUrlPrefix + ":" + i.PicURL
 }
 
 type Items struct {
