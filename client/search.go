@@ -49,12 +49,12 @@ func (c *SearchClient) searchItems(param SearchParam) (model.SearchResult, error
 
 func (c *SearchClient) SearchItems(uri string) (model.SearchResult, error) {
 	param := SearchParamFromUri(uri, c.apiKey)
-	return c.searchItems(param)
+	return c.searchItems(*param)
 }
 
 func (c *SearchClient) SearchTilLimit(uri string, limit int) []model.Item {
 	param := SearchParamFromUri(uri, c.apiKey)
-	result, err := c.searchItems(param)
+	result, err := c.searchItems(*param)
 
 	if err != nil {
 		return nil
@@ -78,7 +78,7 @@ func (c *SearchClient) SearchTilLimit(uri string, limit int) []model.Item {
 		param.page++
 		wg.Add(1)
 		go func() {
-			result, err = c.searchItems(param)
+			result, err = c.searchItems(*param)
 			for _, item := range result.Items.Item {
 				itemsChan <- item
 			}
@@ -113,13 +113,13 @@ type SearchParam struct {
 	key        string
 }
 
-func SearchParamFromUri(uri, apiKey string) SearchParam {
+func SearchParamFromUri(uri, apiKey string) *SearchParam {
 	parse, _ := url.Parse(uri)
 	values := parse.Query()
 
 	sp, ep := GetStartEndPrice(values.Get("filter"))
 
-	return SearchParam{
+	return &SearchParam{
 		route:      route,
 		q:          values.Get("q"),
 		startPrice: sp,
