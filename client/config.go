@@ -1,6 +1,8 @@
 package client
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const (
 	host  = "https://asia.atphosting24.com/taobao/index.php"

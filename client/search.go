@@ -103,7 +103,6 @@ func (c *SearchClient) SearchTilLimit(uri string, limit int) []model.Item {
 }
 
 type SearchParam struct {
-	route      string
 	q          string
 	startPrice float64
 	endPrice   float64
@@ -123,7 +122,6 @@ func SearchParamFromUri(uri, apiKey string) *SearchParam {
 	sp, ep := GetStartEndPrice(values.Get("filter"))
 
 	return &SearchParam{
-		route:      route,
 		q:          values.Get("q"),
 		startPrice: sp,
 		endPrice:   ep,
@@ -141,7 +139,7 @@ func (sp SearchParam) ToQueryParam() string {
 	queryParams := url.Values{}
 
 	queryParams.Add("api_name", searchApiName)
-	queryParams.Add("route", sp.route)
+	queryParams.Add("route", route)
 	queryParams.Add("q", sp.q)
 	queryParams.Add("start_price", fmt.Sprint(sp.startPrice))
 	queryParams.Add("end_price", fmt.Sprint(sp.endPrice))
