@@ -34,7 +34,8 @@ func (c *DetailClient) GetItems(itemIds []string) []model.DetailItem {
 			wg.Add(1)
 			result, err := c.getItem(itemId)
 			if err == nil {
-				itemChans <- result.Item
+				result.DetailItem.SetOptions()
+				itemChans <- result.DetailItem
 			}
 			wg.Done()
 		}()

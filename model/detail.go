@@ -1,10 +1,14 @@
 package model
 
-import "strings"
+import (
+	"math"
+	"strconv"
+	"strings"
+)
 
 type DetailResult struct {
-	Item  *DetailItem `json:"item"`
-	Error string      `json:"error"`
+	DetailItem *DetailItem `json:"item"`
+	Error      string      `json:"error"`
 }
 
 func (dr DetailResult) IsError() bool {
@@ -41,13 +45,50 @@ type DetailItem struct {
 	PropsList map[string]string `json:"props_list"`
 	PropsImg  map[string]string `json:"props_img"`
 	DescImg   []string          `json:"desc_img"`
+	Options   []Option
 }
 
 type Option struct {
-
+	Img      string
+	Name     string
+	Price    float64
+	Value    string
 }
 
-func (di DetailItem) GetItemImgs() []string {
+func (di *DetailItem) SetOptions() {
+	options := make([]Option, 0)
+
+	priceMap := make(map[string]float64)
+
+	for _, sku := range di.Skus.Sku {
+		for _, propPath := range strings.Split(sku.Properties, ";") {
+			price, _ := strconv.ParseFloat(sku.Price, 64)
+			if val, ok := priceMap[propPath]; ok {
+				priceMap[propPath] = math.Min(val, price)
+			} else {
+				priceMap[propPath] = price
+			}
+		}
+	}
+
+	for propPath, value := range di.PropsList {
+		splited := strings.Split(value, ":")
+		option := Option{
+			Name:     splited[0],
+			Value:    splited[1],
+			Img:      di.GetPropImg(propPath),
+			Price:    priceMap[propPath],
+		}
+		options = append(options, option)
+	}
+	di.Options = options
+}
+
+func (di *DetailItem) GetMainImg() string {
+	return ValidImg(di.PicURL)
+}
+
+func (di *DetailItem) GetItemImgs() []string {
 	imgs := make([]string, 0)
 	for _, itemImgs := range di.ItemImgs {
 		img := itemImgs.Url
@@ -57,14 +98,13 @@ func (di DetailItem) GetItemImgs() []string {
 	return imgs
 }
 
-func (di DetailItem) GetPropImg(propPath string) string {
+func (di *DetailItem) GetPropImg(propPath string) string {
 	img := di.PropsImg[propPath]
 
 	return ValidImg(img)
 }
 
-
-func ValidImg(img string) string  {
+func ValidImg(img string) string {
 	if img == "" {
 		return ""
 	}
