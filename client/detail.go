@@ -53,6 +53,36 @@ func (c *DetailClient) GetItems(itemIds []string) []model.DetailItem {
 	return items
 }
 
+func (c *DetailClient) GetDetails(itemIds []string) chan *model.DetailItem {
+	itemLen := len(itemIds)
+
+	var wg sync.WaitGroup
+	wg.Add(itemLen)
+
+	itemChans := make(chan *model.DetailItem, itemLen)
+
+	for _, itemId := range itemIds {
+		itemId := itemId
+		go func() {
+			result, err := c.getItem(itemId)
+			if err == nil {
+				result.DetailItem.SetOptions()
+				itemChans <- result.DetailItem
+			}
+			wg.Done()
+		}()
+	}
+
+	defer func() {
+		go func() {
+			wg.Wait()
+			close(itemChans)
+		}()
+	}()
+
+	return itemChans
+}
+
 func (c *DetailClient) getItem(itemId string) (model.DetailResult, error) {
 	query := c.getDetailQueryParam(itemId)
 
