@@ -80,8 +80,10 @@ func (c *SearchClient) SearchTilLimit(uri string, limit int) []model.Item {
 		wg.Add(1)
 		go func() {
 			result, err = c.searchItems(searchParam)
-			for _, item := range result.Items.Item {
-				itemsChan <- item
+			if result.Items != nil {
+				for _, item := range result.Items.Item {
+					itemsChan <- item
+				}
 			}
 			wg.Done()
 		}()
