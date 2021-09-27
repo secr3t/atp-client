@@ -33,7 +33,7 @@ func (c *DetailClient) GetItems(itemIds []string) []model.DetailItem {
 		itemId := itemId
 		go func() {
 			wg.Add(1)
-			result, err := c.getItem(itemId)
+			result, err := c.GetItem(itemId)
 			if err == nil {
 				result.DetailItem.SetOptions()
 				itemChans <- result.DetailItem
@@ -69,7 +69,7 @@ func (c *DetailClient) GetDetails(itemIds []string) chan *model.DetailItem {
 		duration := int64(idx) * delta
 		go func() {
 			time.Sleep(time.Duration(duration))
-			result, err := c.getItem(itemId)
+			result, err := c.GetItem(itemId)
 			if err == nil {
 				result.DetailItem.SetOptions()
 				itemChans <- result.DetailItem
@@ -88,8 +88,8 @@ func (c *DetailClient) GetDetails(itemIds []string) chan *model.DetailItem {
 	return itemChans
 }
 
-func (c *DetailClient) getItem(itemId string) (model.DetailResult, error) {
-	query := c.getDetailQueryParam(itemId)
+func (c *DetailClient) getItem(itemId string, noCache bool) (model.DetailResult, error) {
+	query := c.getDetailQueryParam(itemId, noCache)
 
 	reqUri := GetUri(query)
 
@@ -114,7 +114,17 @@ func (c *DetailClient) getItem(itemId string) (model.DetailResult, error) {
 	return result, nil
 }
 
-func (c *DetailClient) getDetailQueryParam(itemId string) string {
+func (c *DetailClient) GetItem(itemId string) (model.DetailResult, error) {
+	result, err := c.getItem(itemId, false)
+
+	if err != nil {
+		return c.getItem(itemId, true)
+	}
+
+	return result, err
+}
+
+func (c *DetailClient) getDetailQueryParam(itemId string, noCache bool) string {
 	p := url.Values{}
 
 	p.Add("api_name", detailApiName)
@@ -123,6 +133,9 @@ func (c *DetailClient) getDetailQueryParam(itemId string) string {
 	p.Add("is_promotion", "!")
 	p.Add("key", c.apiKey)
 	p.Add("num_iid", itemId)
+	if noCache {
+		p.Add("cache", "no")
+	}
 
 	return p.Encode()
 }
