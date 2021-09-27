@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 )
 
 const detailApiName = "item_get"
@@ -61,9 +62,13 @@ func (c *DetailClient) GetDetails(itemIds []string) chan *model.DetailItem {
 
 	itemChans := make(chan *model.DetailItem, itemLen)
 
-	for _, itemId := range itemIds {
+	delta := time.Millisecond.Milliseconds() * 200
+
+	for idx, itemId := range itemIds {
 		itemId := itemId
+		duration := int64(idx) * delta
 		go func() {
+			time.Sleep(time.Duration(duration))
 			result, err := c.getItem(itemId)
 			if err == nil {
 				result.DetailItem.SetOptions()
